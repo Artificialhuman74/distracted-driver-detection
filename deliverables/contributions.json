@@ -1,0 +1,6 @@
+{
+ "paragraphs": [
+  "Chiranth R (PES1UG24AM354) and Vihaan Wadhwa (PES1UG24AM319) contributed equally to this project. Both members shared the work on data preparation and the two evaluation splits, training and evaluating the classical baselines and MobileNetV3, the debiasing and cross-validation experiments, the live demo application, and the slides and this report.",
+  "There is clear scope for future research on this work, and both members intend to continue it: testing the findings on a second dataset with new drivers (the AUC Distracted Driver Dataset, requested under licence), trying stronger ways to remove driver identity from the model (such as concept erasure and pose- or hand-based inputs), and evaluating vision-language models such as CLIP with driver-appearance decoupling under realistic calibration."
+ ]
+}

@@ -140,7 +140,7 @@ para(f"We use the labelled training set of the Kaggle competition \"State Farm D
      f"gives the driver ID (subject) of each photo. Classes are roughly balanced, from {min(cc.values()):,} to {max(cc.values()):,} photos per class "
      f"(Figure 1). The competition's unlabelled test images are not used.")
 figure(FIG / "class_examples.png", "One example photo per class (c0 safe driving … c9 talking to passenger).")
-para("Splits. Both splits use 70% / 15% / 15% for train / validation / test with random seed 42. "
+para("Splits: Both splits use 70% / 15% / 15% for train / validation / test with random seed 42. "
      "The random split is stratified by class and ignores the driver. The driver split assigns whole drivers: "
      f"{len(M['driver_split_drivers']['train'])} drivers to training, {len(M['driver_split_drivers']['val'])} to validation and "
      f"{len(M['driver_split_drivers']['test'])} to test (test drivers: {', '.join(M['driver_split_drivers']['test'])}). Table 1 gives the sizes.")
@@ -148,7 +148,7 @@ table(["Split", "Part", "Photos", "Share", "Drivers"],
       [[k, part, f"{SP[k][part]['n_images']:,}", pct(SP[k][part]['fraction']), SP[k][part]['n_drivers']]
        for k in ["random", "driver"] for part in ["train", "val", "test"]],
       "Sizes of the two splits. In the random split every driver appears in every part.")
-para(f"Preprocessing. For the classical models each photo is resized to {META['classical_img_size']}×{META['classical_img_size']}×3, flattened "
+para(f"Preprocessing: For the classical models each photo is resized to {META['classical_img_size']}×{META['classical_img_size']}×3, flattened "
      f"into 12,288 values in [0, 1] and standardised with a scaler fitted on the training set only. For MobileNetV3 photos are resized to "
      f"{META['deep_img_size']}×{META['deep_img_size']} and normalised with the ImageNet mean and standard deviation.")
 
@@ -327,7 +327,10 @@ para("Future work: more drivers and a second dataset (cross-dataset testing); st
 heading("Contributions of Each Member")
 contrib = ROOT / "deliverables" / "contributions.json"
 if contrib.exists():
-    for who, what in json.loads(contrib.read_text()).items():
+    C_ = json.loads(contrib.read_text())
+    for text in C_.get("paragraphs", []):          # free-text statement, e.g. equal contribution
+        para(text)
+    for who, what in C_.get("members", {}).items():  # optional per-member bullets
         p = doc.add_paragraph(style="List Bullet"); r = p.add_run(f"{who}: "); r.bold = True; p.add_run(what)
 else:
     para("[TO BE FILLED IN BY THE TEAM: create deliverables/contributions.json and re-run scripts/make_report.py]", bold=True)
