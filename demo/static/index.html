@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Distracted Driver Detection · live demo</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" class="sprite" aria-hidden="true">
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8a1 1 0 0 1 1-1h3l1.5-2h5L16 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="title">
+    <h1>How a neural network spots a distracted driver</h1>
+    <p class="byline">MobileNetV3 on real State Farm dashboard photos · Team F-28 · Chiranth R &amp; Vihaan Wadhwa</p>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" id="tab-inside" aria-controls="view-inside" aria-selected="true">Inside the network</button>
+    <button role="tab" id="tab-compare" aria-controls="view-compare" aria-selected="false">Two models</button>
+    <button role="tab" id="tab-results" aria-controls="view-results" aria-selected="false">Results</button>
+  </nav>
+  <p class="cpu" id="cpu" title="Time for one forward pass on this laptop's CPU">CPU <b id="cpu-ms">–</b> ms</p>
+</header>
+
+<p class="banner" id="smoke-banner" hidden>These are smoke-test models (1 training epoch), not the final results.</p>
+
+<main>
+  <!-- ============ INSIDE THE NETWORK ============ -->
+  <section class="view" id="view-inside" role="tabpanel" aria-labelledby="tab-inside">
+    <div class="toolbar">
+      <div class="switch" role="radiogroup" aria-label="Which model to look inside">
+        <button role="radio" class="m-driver" data-model="driver" aria-checked="true"><i class="swatch"></i>Driver-split model</button>
+        <button role="radio" class="m-random" data-model="random" aria-checked="false"><i class="swatch"></i>Random-split model</button>
+      </div>
+      <p class="model-note" id="model-note"></p>
+    </div>
+
+    <div class="figure" id="figure">
+      <div class="wire" aria-hidden="true"><span class="wire-lit" id="wire-lit"></span></div>
+      <span class="pulse" id="pulse" aria-hidden="true"></span>
+
+      <div class="node node-input" data-step="0">
+        <header><span class="no">01</span><h2>Input photo</h2></header>
+        <div class="vis"><canvas id="photo" width="224" height="224" aria-label="Input photo"></canvas></div>
+        <footer>
+          <p class="dims">224 × 224 × 3</p>
+          <label class="check"><input type="checkbox" id="cam-on"> Where it looked</label>
+          <input type="range" id="cam-opacity" min="0" max="100" value="65" aria-label="Heatmap opacity" disabled>
+        </footer>
+      </div>
+
+      <ol class="stages" id="stages"></ol>
+
+      <div class="node node-pool" data-step="7">
+        <header><span class="no">08</span><h2>Average</h2></header>
+        <div class="vis"><canvas id="pool" width="24" height="960" aria-label="960 averaged feature values"></canvas></div>
+        <footer><p class="dims">960 numbers</p><p class="cap">Each map squeezed to one number</p></footer>
+      </div>
+
+      <div class="node node-out" data-step="8">
+        <header><span class="no">09</span><h2>10 outputs</h2></header>
+        <ol class="outputs" id="outputs"></ol>
+      </div>
+    </div>
+
+    <div class="narration">
+      <div class="controls">
+        <button class="icon" id="btn-prev" aria-label="Previous step (left arrow)"><svg><use href="#i-prev"/></svg></button>
+        <button class="icon" id="btn-replay" aria-label="Replay (space)"><svg><use href="#i-replay"/></svg></button>
+        <button class="icon" id="btn-next" aria-label="Next step (right arrow)"><svg><use href="#i-next"/></svg></button>
+      </div>
+      <p class="say" id="say" aria-live="polite">Loading the models…</p>
+      <div class="verdict" id="verdict" aria-live="polite"></div>
+    </div>
+
+    <div class="drawer" id="drawer" hidden>
+      <header>
+        <h2 id="drawer-title"></h2>
+        <p id="drawer-sub"></p>
+        <button class="icon" id="drawer-close" aria-label="Close stage detail"><svg><use href="#i-close"/></svg></button>
+      </header>
+      <div class="drawer-maps" id="drawer-maps"></div>
+    </div>
+  </section>
+
+  <!-- ============ TWO MODELS ============ -->
+  <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+    <h2 class="lede" id="compare-lede">Same photo, two models.</h2>
+    <div class="duo">
+      <article class="reader r-random" id="reader-random"></article>
+      <article class="reader r-driver" id="reader-driver"></article>
+    </div>
+    <label class="slider-row">Heatmap opacity <input type="range" id="duo-opacity" min="0" max="100" value="60"></label>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section class="view results" id="view-results" role="tabpanel" aria-labelledby="tab-results" hidden>
+    <div id="results-body"><p class="say">Loading results…</p></div>
+  </section>
+
+  <!-- ============ PHOTO RACK (shared by the first two views) ============ -->
+  <section class="rack" id="rack" aria-label="Choose a photo">
+    <div class="rack-head">
+      <h2>Pick a test photo</h2>
+      <p>Real photos of the 4 test drivers, never used for training · <span id="rack-count"></span></p>
+      <span class="more"><button class="icon" id="rack-left" aria-label="Scroll photos left"><svg><use href="#i-prev"/></svg></button><button class="icon" id="rack-right" aria-label="Scroll photos right"><svg><use href="#i-next"/></svg></button></span>
+    </div>
+    <div class="rack-row">
+      <ul class="thumbs" id="thumbs"></ul>
+      <div class="rack-actions">
+        <label class="tile" for="file"><svg><use href="#i-upload"/></svg><span>Upload or drop a photo</span></label>
+        <input type="file" id="file" accept="image/*" hidden>
+        <button class="tile" id="btn-cam"><svg><use href="#i-camera"/></svg><span>Webcam <em>experimental</em></span></button>
+      </div>
+    </div>
+    <div class="webcam" id="webcam" hidden>
+      <video id="video" autoplay playsinline muted></video>
+      <div>
+        <p><b>Experimental.</b> The dataset camera sits on the passenger side looking at the driver, so a laptop webcam gives a different angle and the predictions are unreliable.</p>
+        <button class="primary" id="btn-snap">Take snapshot and classify</button>
+        <button class="ghost" id="btn-cam-close">Close camera</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="dropzone" id="dropzone" hidden><p>Drop the photo to classify it</p></div>
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

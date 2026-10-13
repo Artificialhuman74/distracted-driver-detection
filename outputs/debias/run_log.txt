@@ -1,0 +1,83 @@
+== creating Colab session dd-f28-debias with GPU T4
+[colab] Creating session 'dd-f28-debias'...
+[colab] Session READY.
+== uploading Kaggle token (file only, never printed), split file and main-run models
+[colab] Uploaded '/Users/chiranthr/.kaggle/access_token' to '/content/kaggle_access_token'
+[colab] Uploaded 'outputs/splits/driver_split.csv' to '/content/driver_split.csv'
+[colab] Uploaded 'outputs/model_driver.pt' to '/content/model_driver.pt'
+[colab] Uploaded 'outputs/model_random.pt' to '/content/model_random.pt'
+[colab] Uploaded 'outputs/metrics.json' to '/content/metrics.json'
+== downloading the real State Farm data on the VM
+DATA READY: 22424 labelled training images in /content/data
+CompletedProcess(args='nvidia-smi --query-gpu=name,memory.total 
+--format=csv,noheader; nproc; free -g | head -2', returncode=0)
+== debiasing experiment
+GPU: Tesla T4
+{'train': 15313, 'val': 3598, 'test': 3513} train drivers 18 test drivers ['p022', 'p039', 'p047', 'p056']
+----- load images took 1.4 min (total 1.4 min)
+SANITY baseline re-evaluated: val 0.8569 test 0.8748 (main run: 0.8748)
+----- baseline re-eval took 0.2 min (total 1.7 min)
+Downloading: "https://download.pytorch.org/models/mobilenet_v3_large-5c1a4163.pth" to /root/.cache/torch/hub/checkpoints/mobilenet_v3_large-5c1a4163.pth
+  0%|          | 0.00/21.1M [00:00<?, ?B/s] 15%|█▍        | 3.12M/21.1M [00:00<00:00, 32.2MB/s] 34%|███▍      | 7.12M/21.1M [00:00<00:00, 37.7MB/s]100%|██████████| 21.1M/21.1M [00:00<00:00, 78.6MB/s]
+  [aug] epoch 1/8 loss 1.2281 val 0.7110 (356 img/s)  <- best
+  [aug] epoch 2/8 loss 0.6027 val 0.7624 (726 img/s)  <- best
+  [aug] epoch 3/8 loss 0.5603 val 0.8330 (709 img/s)  <- best
+  [aug] epoch 4/8 loss 0.5431 val 0.8683 (689 img/s)  <- best
+  [aug] epoch 5/8 loss 0.5274 val 0.8519 (696 img/s)
+  [aug] epoch 6/8 loss 0.5180 val 0.8366 (705 img/s)
+  [aug] epoch 7/8 loss 0.5126 val 0.8574 (699 img/s)
+  [aug] epoch 8/8 loss 0.5102 val 0.8583 (696 img/s)
+----- train aug took 3.5 min (total 5.1 min)
+  [aug] best epoch 4: val 0.8683 -> test 0.9032 macro-F1 0.8978
+  [aug+adv0.3] epoch 1/8 loss 3.8897 val 0.8171  driver-head acc 0.243 (680 img/s)  <- best
+  [aug+adv0.3] epoch 2/8 loss 3.4939 val 0.8349  driver-head acc 0.072 (683 img/s)  <- best
+  [aug+adv0.3] epoch 3/8 loss 3.4562 val 0.8171  driver-head acc 0.072 (680 img/s)
+  [aug+adv0.3] epoch 4/8 loss 3.4291 val 0.8841  driver-head acc 0.067 (681 img/s)  <- best
+  [aug+adv0.3] epoch 5/8 loss 3.4037 val 0.8944  driver-head acc 0.072 (681 img/s)  <- best
+  [aug+adv0.3] epoch 6/8 loss 3.3893 val 0.8894  driver-head acc 0.077 (681 img/s)
+  [aug+adv0.3] epoch 7/8 loss 3.3841 val 0.8441  driver-head acc 0.074 (681 img/s)
+  [aug+adv0.3] epoch 8/8 loss 3.3859 val 0.8421  driver-head acc 0.077 (680 img/s)
+----- train aug+adv0.3 took 3.2 min (total 8.4 min)
+  [aug+adv0.3] best epoch 5: val 0.8944 -> test 0.8918 macro-F1 0.8887
+  [aug+adv1.0] epoch 1/8 loss 4.0689 val 0.7943  driver-head acc 0.165 (681 img/s)  <- best
+  [aug+adv1.0] epoch 2/8 loss 3.5309 val 0.7054  driver-head acc 0.057 (680 img/s)
+  [aug+adv1.0] epoch 3/8 loss 3.5119 val 0.8766  driver-head acc 0.065 (677 img/s)  <- best
+  [aug+adv1.0] epoch 4/8 loss 3.4783 val 0.8452  driver-head acc 0.070 (678 img/s)
+  [aug+adv1.0] epoch 5/8 loss 3.4251 val 0.8349  driver-head acc 0.073 (678 img/s)
+  [aug+adv1.0] epoch 6/8 loss 3.4062 val 0.8847  driver-head acc 0.071 (678 img/s)  <- best
+  [aug+adv1.0] epoch 7/8 loss 3.3941 val 0.8863  driver-head acc 0.072 (678 img/s)  <- best
+  [aug+adv1.0] epoch 8/8 loss 3.3864 val 0.9005  driver-head acc 0.073 (679 img/s)  <- best
+----- train aug+adv1.0 took 3.2 min (total 11.6 min)
+  [aug+adv1.0] best epoch 8: val 0.9005 -> test 0.9146 macro-F1 0.9142
+SELECTED BY VALIDATION: aug+adv1.0
+  identity probe [imagenet (no fine-tuning)]: 1.0000  (chance 0.25)
+  identity probe [random-split model]: 1.0000  (chance 0.25)
+  identity probe [baseline]: 1.0000  (chance 0.25)
+  identity probe [aug]: 0.9994  (chance 0.25)
+  identity probe [aug+adv0.3]: 0.9994  (chance 0.25)
+  identity probe [aug+adv1.0]: 0.9994  (chance 0.25)
+----- identity probe took 0.2 min (total 11.8 min)
+/tmp/ipykernel_762/1323626604.py:268: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  return cam.detach().cpu().numpy(), p, float(F.softmax(lo, 1)[0, p])
+DEBIAS SUMMARY
+  baseline     val 0.8569  test 0.8748  F1 0.8721
+  aug          val 0.8683  test 0.9032  F1 0.8978
+  aug+adv0.3   val 0.8944  test 0.8918  F1 0.8887
+  aug+adv1.0   val 0.9005  test 0.9146  F1 0.9142
+  selected (by validation): aug+adv1.0 | total 721.7 s
+== zipping and downloading results
+zipped
+[colab] Downloaded '/content/debias.zip' to 'runs/debias/debias.zip'
+figures
+metrics_debias.json
+model_debiased.pt
+
+runs/debias/out/figures:
+debias_accuracy.png
+gradcam_debiased.png
+identity_probe.png
+DEBIAS RUN COMPLETE
+== stopping session dd-f28-debias
+[colab] Stopping session 'dd-f28-debias'...
+[colab] Session terminated.

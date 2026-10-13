@@ -1,0 +1,143 @@
+== creating Colab session dd-f28 with GPU T4
+[colab] Creating session 'dd-f28'...
+[colab] Session READY.
+== uploading Kaggle token (file only, never printed)
+[colab] Uploaded '/Users/chiranthr/.kaggle/access_token' to '/content/kaggle_access_token'
+== downloading the real State Farm data on the VM
+DATA READY: 22424 labelled training images in /content/data
+CompletedProcess(args='nvidia-smi --query-gpu=name,memory.total 
+--format=csv,noheader; nproc; free -g | head -2', returncode=0)
+== training (full run)
+SMOKE = False | epochs = 8
+Data root: /content/data
+Full labelled set: 22424 images, 26 drivers, 10 classes
+
+===== 1. Build splits =====
+random  train:  15696 images (70.0%), 26 drivers
+random  val  :   3364 images (15.0%), 26 drivers
+random  test :   3364 images (15.0%), 26 drivers
+driver  train:  15313 images (68.3%), 18 drivers
+driver  val  :   3598 images (16.0%),  4 drivers
+driver  test :   3513 images (15.7%),  4 drivers
+
+RANDOM split: 26 of 26 test drivers ALSO appear in train  <-- the leak
+DRIVER split drivers:
+  train: ['p002', 'p012', 'p014', 'p015', 'p016', 'p021', 'p026', 'p035', 'p041', 'p042', 'p045', 'p049', 'p050', 'p051', 'p064', 'p066', 'p072', 'p075']
+  val  : ['p024', 'p052', 'p061', 'p081']
+  test : ['p022', 'p039', 'p047', 'p056']
+----- 1. Build splits took 0.0 min (total so far 0.1 min)
+
+===== 2. Load images =====
+  loaded 5000/22424
+  loaded 10000/22424
+  loaded 15000/22424
+  loaded 20000/22424
+X224 (22424, 224, 224, 3) (3.38 GB), X64 (22424, 64, 64, 3)
+----- 2. Load images took 1.8 min (total so far 1.9 min)
+
+===== 3. Classical models — random split =====
+  training on 8000 of 15696 train images
+  Naive Bayes    [random]  test acc 0.5113  macro-F1 0.5076  (val acc 0.5232, train 9s)
+  Linear SVM     [random]  test acc 0.9590  macro-F1 0.9589  (val acc 0.9560, train 33s)
+  Softmax        [random]  test acc 0.9795  macro-F1 0.9793  (val acc 0.9762, train 19s)
+  Decision Tree  [random]  test acc 0.7464  macro-F1 0.7483  (val acc 0.7414, train 95s)
+----- 3. Classical models — random split took 2.7 min (total so far 4.6 min)
+
+===== 3. Classical models — driver split =====
+  training on 8000 of 15313 train images
+  Naive Bayes    [driver]  test acc 0.2602  macro-F1 0.2275  (val acc 0.3766, train 8s)
+  Linear SVM     [driver]  test acc 0.3305  macro-F1 0.3377  (val acc 0.4494, train 34s)
+  Softmax        [driver]  test acc 0.3430  macro-F1 0.3337  (val acc 0.4263, train 17s)
+  Decision Tree  [driver]  test acc 0.3043  macro-F1 0.3027  (val acc 0.2268, train 91s)
+----- 3. Classical models — driver split took 2.6 min (total so far 7.2 min)
+torch 2.11.0+cu130 | GPU: Tesla T4 (7, 5)
+
+===== 4. MobileNetV3 — random split =====
+Downloading: "https://download.pytorch.org/models/mobilenet_v3_large-5c1a4163.pth" to /root/.cache/torch/hub/checkpoints/mobilenet_v3_large-5c1a4163.pth
+  0%|          | 0.00/21.1M [00:00<?, ?B/s] 31%|███▏      | 6.62M/21.1M [00:00<00:00, 67.6MB/s] 62%|██████▏   | 13.1M/21.1M [00:00<00:00, 61.4MB/s]100%|██████████| 21.1M/21.1M [00:00<00:00, 77.8MB/s]
+  epoch 1/8  loss 1.1229  val acc 0.9709  (53s, 325 img/s)  <- best so far
+  epoch 2/8  loss 0.5593  val acc 0.9872  (22s, 748 img/s)  <- best so far
+  epoch 3/8  loss 0.5275  val acc 0.9477  (23s, 734 img/s)
+  epoch 4/8  loss 0.5161  val acc 0.9920  (23s, 715 img/s)  <- best so far
+  epoch 5/8  loss 0.5099  val acc 0.9949  (25s, 672 img/s)  <- best so far
+  epoch 6/8  loss 0.5051  val acc 0.9952  (24s, 706 img/s)  <- best so far
+  epoch 7/8  loss 0.5036  val acc 0.9967  (23s, 717 img/s)  <- best so far
+  epoch 8/8  loss 0.5031  val acc 0.9967  (24s, 699 img/s)
+  MobileNetV3    [random]  test acc 0.9988  macro-F1 0.9988  (val acc 0.9967, train 218s)
+----- 4. MobileNetV3 — random split took 3.7 min (total so far 11.0 min)
+
+===== 4. MobileNetV3 — driver split =====
+  epoch 1/8  loss 1.0919  val acc 0.8446  (24s, 693 img/s)  <- best so far
+  epoch 2/8  loss 0.5481  val acc 0.7838  (23s, 705 img/s)
+  epoch 3/8  loss 0.5270  val acc 0.7829  (23s, 701 img/s)
+  epoch 4/8  loss 0.5152  val acc 0.7846  (23s, 697 img/s)
+  epoch 5/8  loss 0.5071  val acc 0.8391  (23s, 700 img/s)
+  epoch 6/8  loss 0.5041  val acc 0.8455  (23s, 705 img/s)  <- best so far
+  epoch 7/8  loss 0.5026  val acc 0.8571  (23s, 700 img/s)  <- best so far
+  epoch 8/8  loss 0.5022  val acc 0.8569  (23s, 699 img/s)
+  MobileNetV3    [driver]  test acc 0.8748  macro-F1 0.8721  (val acc 0.8571, train 188s)
+----- 4. MobileNetV3 — driver split took 3.2 min (total so far 14.2 min)
+
+===== 5. Grad-CAM + sample images =====
+  509 images are unseen by BOTH models
+----- 5. Grad-CAM + sample images took 0.2 min (total so far 14.4 min)
+
+===== 6. Figures + metrics.json =====
+----- 6. Figures + metrics.json took 0.0 min (total so far 14.4 min)
+
+================ SUMMARY ================
+model             random acc  driver acc  drop (pts)
+Naive Bayes           0.5113      0.2602        25.1
+Linear SVM            0.9590      0.3305        62.8
+Softmax               0.9795      0.3430        63.6
+Decision Tree         0.7464      0.3043        44.2
+MobileNetV3           0.9988      0.8748        12.4
+
+Timings (s): {
+ "1. Build splits": 0.1,
+ "2. Load images": 110.3,
+ "3. Classical models \u2014 random split": 160.6,
+ "3. Classical models \u2014 driver split": 154.6,
+ "4. MobileNetV3 \u2014 random split": 221.4,
+ "4. MobileNetV3 \u2014 driver split": 194.0,
+ "5. Grad-CAM + sample images": 11.0,
+ "total": 865.5,
+ "6. Figures + metrics.json": 1.4
+}
+
+Output files:
+  figures/class_counts.png  (0.02 MB)
+  figures/class_examples.png  (1.43 MB)
+  figures/cm_driver_decision_tree.png  (0.10 MB)
+  figures/cm_driver_linear_svm.png  (0.09 MB)
+  figures/cm_driver_mobilenetv3.png  (0.08 MB)
+  figures/cm_driver_naive_bayes.png  (0.09 MB)
+  figures/cm_driver_softmax.png  (0.09 MB)
+  figures/cm_random_decision_tree.png  (0.09 MB)
+  figures/cm_random_linear_svm.png  (0.08 MB)
+  figures/cm_random_mobilenetv3.png  (0.07 MB)
+  figures/cm_random_naive_bayes.png  (0.10 MB)
+  figures/cm_random_softmax.png  (0.07 MB)
+  figures/gradcam_grid.png  (5.27 MB)
+  figures/per_driver_accuracy.png  (0.04 MB)
+  figures/split_comparison.png  (0.06 MB)
+  figures/training_curves.png  (0.04 MB)
+  metrics.json  (0.03 MB)
+  model_driver.pt  (17.05 MB)
+  model_random.pt  (17.05 MB)
+  splits/driver_split.csv  (0.62 MB)
+  splits/random_split.csv  (0.62 MB)
+  sample_images/: 30 jpgs
+== zipping and downloading results
+zipped
+[colab] Downloaded '/content/outputs.zip' to 'runs/colab/outputs.zip'
+figures
+metrics.json
+model_driver.pt
+model_random.pt
+sample_images
+splits
+COLAB RUN COMPLETE
+== stopping session dd-f28
+[colab] Stopping session 'dd-f28'...
+[colab] Session terminated.

@@ -1,0 +1,23 @@
+# local environment and tooling
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+.impeccable/
+
+# raw run downloads and logs (large; contain copies of dataset images)
+runs/
+*.zip
+
+# State Farm images must not be redistributed (Kaggle competition rules)
+outputs/sample_images/
+data/
+
+# personal documents (filled licence form)
+docs/
+
+# never commit credentials
+kaggle.json
+access_token
+*.token

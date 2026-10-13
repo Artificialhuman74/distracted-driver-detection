@@ -1,0 +1,16 @@
+{
+  "id": "artificialhuman73/distracted-driver-detection-f28",
+  "title": "Distracted Driver Detection F28",
+  "code_file": "train.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [],
+  "competition_sources": ["state-farm-distracted-driver-detection"],
+  "kernel_sources": [],
+  "model_sources": []
+}
